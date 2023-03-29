@@ -11,11 +11,15 @@ const {
   unblockUser,
   handleRefreshToken,
   logout,
+  updatePassword,
+  forgotPasswordToken,
 } = require("../controller/userCtrl");
 
 const { authMiddleware, isAdmin } = require("../middlewares/authMiddleware");
 
 router.post("/register", createUser);
+router.post("/forgot-password-token", forgotPasswordToken);
+router.put("/password", authMiddleware, updatePassword);
 router.post("/login", loginUserCtrl);
 router.get("/all-users", getallUser);
 router.get("/:id", authMiddleware, isAdmin, getaUser);
@@ -27,4 +31,3 @@ router.put("/block-user/:id", authMiddleware, isAdmin, blockUser);
 router.put("/unblock-user/:id", authMiddleware, isAdmin, unblockUser);
 
 module.exports = router;
-//2:18:17 odoo product hesgiig hiine
