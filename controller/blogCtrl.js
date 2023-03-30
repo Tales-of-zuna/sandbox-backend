@@ -25,7 +25,9 @@ const updateBlog = asyncHandler(async (req, res) => {
 const getBlog = asyncHandler(async (req, res) => {
   const { id } = req.params;
   try {
-    const getBlog = await Blog.findById(id);
+    const getBlog = await Blog.findById(id)
+      .populate("likes")
+      .populate("dislikes");
     await Blog.findByIdAndUpdate(id, { $inc: { numViews: 1 } }, { new: true });
     res.json(getBlog);
   } catch (error) {
