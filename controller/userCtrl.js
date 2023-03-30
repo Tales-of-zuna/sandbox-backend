@@ -5,6 +5,7 @@ const { generateToken } = require("../config/jwtToken");
 const validateMongoDbId = require("../utils/validateMongodbId");
 const { generateRefreshToken } = require("../config/refreshtoken");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 const sendEmail = require("./emailCtrl");
 
 //create user
@@ -205,7 +206,6 @@ const forgotPasswordToken = asyncHandler(async (req, res) => {
   const { email } = req.body;
   const user = await User.findOne({ email });
   if (!user) throw new Error("Хэрэглэгч олдсонгүй");
-
   try {
     const token = await user.createPasswordResetToken();
     await user.save();
@@ -224,6 +224,24 @@ const forgotPasswordToken = asyncHandler(async (req, res) => {
   }
 });
 
+const resetPassword = asyncHandler(async (req, res) => {
+  const { password } = req.body;
+  const { token } = req.params;
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+  if (!user) {
+    throw new Error("Token хугацаа дууссан байна. Дахин оролдоно уу");
+  }
+  user.password = password;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  await user.save();
+  res.json(user);
+});
+
 module.exports = {
   forgotPasswordToken,
   createUser,
@@ -237,4 +255,5 @@ module.exports = {
   handleRefreshToken,
   logout,
   updatePassword,
+  resetPassword,
 };
