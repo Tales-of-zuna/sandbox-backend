@@ -1,6 +1,5 @@
 const Product = require("../models/productModel");
 const asyncHandler = require("express-async-handler");
-const match = require("nodemon/lib/monitor/match");
 const slugify = require("slugify");
 const User = require("../models/userModel");
 const createProduct = asyncHandler(async (req, res) => {
