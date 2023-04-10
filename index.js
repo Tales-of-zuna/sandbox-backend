@@ -1,6 +1,5 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-
 const dbConnect = require("./config/dbConnect");
 const app = express();
 const dotenv = require("dotenv").config();
