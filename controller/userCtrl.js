@@ -70,6 +70,7 @@ const logout = asyncHandler(async (req, res) => {
 const loginUserCtrl = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   const findUser = await User.findOne({ email });
+  console.log("[1] ", findUser);
   if (findUser && (await findUser.isPasswordMatched(password))) {
     const refreshToken = await generateRefreshToken(findUser?._id);
     const updateuser = await User.findByIdAndUpdate(
@@ -93,6 +94,39 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
     });
   } else {
     throw new Error("Hereglegchiin aldaa");
+  }
+});
+
+//login admin
+const loginAdmin = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+  const findAdmin = await User.findOne({ email });
+  if (findAdmin.role !== "admin") {
+    throw new Error("Admin бишээн");
+  }
+  if (findAdmin && (await findAdmin.isPasswordMatched(password))) {
+    const refreshToken = await generateRefreshToken(findAdmin?._id);
+    const updateadmin = await User.findByIdAndUpdate(
+      findAdmin.id,
+      {
+        refreshToken: refreshToken,
+      },
+      { new: true }
+    );
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      maxAge: 168 * 60 * 60 * 1000,
+    });
+    res.json({
+      _id: findAdmin._id,
+      firstname: findAdmin?.firstname,
+      lastname: findAdmin?.lastname,
+      email: findAdmin?.email,
+      mobile: findAdmin?.mobile,
+      token: generateToken(findAdmin?._id),
+    });
+  } else {
+    throw new Error("Adminii aldaa");
   }
 });
 
@@ -147,7 +181,7 @@ const getaUser = asyncHandler(async (req, res) => {
 
 const deleteaUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  validateMongoDbId(_id);
+  validateMongoDbId(id);
   try {
     const deleteaUser = await User.findByIdAndDelete(id);
     res.json({
@@ -168,7 +202,6 @@ const blockUser = asyncHandler(async (req, res) => {
       { new: true }
     );
     res.json(block);
-    s;
   } catch (error) {
     throw new Error(error);
   }
@@ -256,4 +289,5 @@ module.exports = {
   logout,
   updatePassword,
   resetPassword,
+  loginAdmin,
 };
