@@ -36,7 +36,7 @@ var userSchema = new mongoose.Schema(
       type: String,
       default: "user",
     },
-
+    profilePic: { String },
     cart: {
       type: Array,
       default: [],

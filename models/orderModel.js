@@ -3,6 +3,8 @@ const mongoose = require("mongoose"); // Erase if already required
 // Declare the Schema of the Mongo model
 var orderSchema = new mongoose.Schema(
   {
+    orderNum: String,
+
     products: [
       {
         product: {
@@ -29,6 +31,10 @@ var orderSchema = new mongoose.Schema(
     orderby: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+    },
+
+    orderNotes: {
+      Array,
     },
   },
   {

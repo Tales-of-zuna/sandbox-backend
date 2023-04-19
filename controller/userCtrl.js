@@ -51,7 +51,6 @@ const handleRefreshToken = asyncHandler(async (req, res) => {
 });
 
 //logout function
-
 const logout = asyncHandler(async (req, res) => {
   const cookie = req.cookies;
   if (!cookie?.refreshToken) {
@@ -75,7 +74,7 @@ const logout = asyncHandler(async (req, res) => {
 const loginUserCtrl = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   const findUser = await User.findOne({ email });
-  console.log("[1] ", findUser);
+
   if (findUser && (await findUser.isPasswordMatched(password))) {
     const refreshToken = await generateRefreshToken(findUser?._id);
     const updateuser = await User.findByIdAndUpdate(
@@ -87,7 +86,7 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
     );
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      maxAge: 168 * 60 * 60 * 1000,
+      maxAge: 3600 * 60 * 24 * 30,
     });
     res.json({
       _id: findUser._id,
@@ -98,7 +97,31 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
       token: generateToken(findUser?._id),
     });
   } else {
-    throw new Error("Hereglegchiin aldaa");
+    throw new Error("Хэрэглэгчийн алдаа");
+  }
+});
+
+// set user nuxt front deer hereglene
+
+const setUser = asyncHandler(async (req, res) => {
+  let token;
+  if (req?.headers?.authorization?.startsWith("Bearer")) {
+    token = req.headers.authorization.split(" ")[1];
+    try {
+      if (token) {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findById(decoded?.id);
+        req.user = user;
+        const data = { user };
+        res.json(data);
+      }
+    } catch (error) {
+      throw new Error(
+        "Таны хандалтын хугацаа дууссан байна. Дахин нэвтэрнэ үү"
+      );
+    }
+  } else {
+    throw new Error("No token to the header");
   }
 });
 
@@ -195,9 +218,7 @@ const getaUser = asyncHandler(async (req, res) => {
   validateMongoDbId(id);
   try {
     const getaUser = await User.findById(id);
-    res.json({
-      getaUser,
-    });
+    res.json(getaUser);
   } catch (error) {
     throw new Error(error);
   }
@@ -481,6 +502,29 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
   }
 });
 
+const getAllOrders = asyncHandler(async (req, res) => {
+  try {
+    const order = await Order.find()
+      .populate("orderby")
+      .populate("products.product");
+    res.json(order);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
+const getOneOrder = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  try {
+    const getaOrder = await Order.findById(id)
+      .populate("orderby")
+      .populate("products.product");
+    res.json(getaOrder);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
 module.exports = {
   forgotPasswordToken,
   createUser,
@@ -505,4 +549,7 @@ module.exports = {
   createOrder,
   getOrders,
   updateOrderStatus,
+  getAllOrders,
+  setUser,
+  getOneOrder,
 };
